@@ -1,10 +1,13 @@
 from django.urls import path
 from django.views.generic import RedirectView
 # from app.views import homepage, about, resume
-from . import views
+from app.views import user
 
 urlpatterns = [
     # path('', RedirectView.as_view(pattern_name='homepage'), name='empty_redirect'),
 
-    path('index/', views.index, name='index'),
+    path('user/', user.userList, name='userList'),
+    path('create/user/', user.create, name='create'),
+    path('delete/user/<int:pk>/', user.delete, name='delete'),
+    path('update/user/<int:pk>/', user.update, name='update'),
 ]
