@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Environments
+.env
+.venv/
+venv/
+ENV/
+env/
+*.env
+
+# Django specific
+*.log
+local_settings.py
+db.sqlite3
+media/
+staticfiles/
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+*$py.class
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Test coverage
+htmlcov/
+.coverage
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Migrations (optional)
+**/migrations/*.pyc
+**/migrations/__pycache__/
+# Optional: ignore initial migrations or all migrations
+# **/migrations/
+
+# MyPy
+.mypy_cache/
+
+# Pytest
+.pytest_cache/
+
+# VS Code Jupyter Notebook
+.ipynb_checkpoints/
