@@ -50,7 +50,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     'app.middleware.login_required_middleware.LoginRequiredMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
 ]
 
 ROOT_URLCONF = "brmproject.urls"

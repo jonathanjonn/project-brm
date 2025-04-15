@@ -8,37 +8,25 @@
         body {
             min-height: 100vh;
             display: flex;
-            flex-direction: row;
-            background-color: #f8f9fa;
         }
         .sidebar {
             width: 250px;
             background-color: #343a40;
             color: white;
             min-height: 100vh;
-            padding-top: 20px;
-            position: fixed;
         }
         .sidebar a {
             color: white;
             text-decoration: none;
             display: block;
             padding: 10px 20px;
-            margin-bottom: 5px;
         }
         .sidebar a:hover {
             background-color: #495057;
         }
         .main-content {
-            margin-left: 250px; /* Make space for the sidebar */
             flex-grow: 1;
             padding: 20px;
-        }
-        .alert-container {
-            position: absolute;
-            top: 10px;
-            width: 100%;
-            z-index: 9999;
         }
     </style>
 </head>
@@ -46,7 +34,7 @@
 
     <!-- Sidebar -->
     <div class="sidebar">
-        <h4 class="text-center text-white py-3">My App</h4>
+        <h4 class="text-center py-3">My App</h4>
         <a href="{% url 'homepage' %}">Home</a>
 
         {% if request.user.is_superuser %}
@@ -60,28 +48,11 @@
         </form>
     </div>
 
-    <!-- Messages Section -->
-    {% if messages %}
-    <div class="alert-container">
-        <div class="container mt-3">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
     <!-- Main Content -->
     <div class="main-content">
         {% block content %}
-        <!-- Page specific content goes here -->
         {% endblock %}
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
