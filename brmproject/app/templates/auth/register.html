@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head><title>Register</title></head>
+<body>
+    <h2>Register New User (Superuser only)</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Create User</button>
+    </form>
+</body>
+</html>

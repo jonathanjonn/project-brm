@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Homepage</title>
+</head>
+<body>
+    <h2>Welcome, {{ request.user.username }}</h2>
+
+    <!-- Tombol Logout -->
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+    </form>
+
+    <!-- Konten lainnya -->
+</body>
+</html>
