@@ -1,18 +1,12 @@
 from django.urls import path
 from django.views.generic import RedirectView
 from django.contrib.auth.decorators import login_required
-from app.views import user
 from .views.auth import login_view, register_view, logout_view, home_view
 
 
 urlpatterns = [
     # path('', RedirectView.as_view(pattern_name='userList'), name='empty_redirect'),
     path('', home_view, name='homepage'),
-
-    path('user/', user.userList, name='userList'),
-    path('create/user/', user.create, name='create'),
-    path('delete/user/<int:pk>/', user.delete, name='delete'),
-    path('update/user/<int:pk>/', user.update, name='update'),
 
     path('login/', login_view, name='login'),
     path('register/', register_view, name='register'),
