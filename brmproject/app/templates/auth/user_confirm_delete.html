@@ -1,0 +1,7 @@
+<h2>Hapus User</h2>
+<p>Apakah kamu yakin ingin menghapus user <strong>{{ user.username }}</strong>?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Ya, hapus</button>
+    <a href="{% url 'user_list' %}">Batal</a>
+</form>
