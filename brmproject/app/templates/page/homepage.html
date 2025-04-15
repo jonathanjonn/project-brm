@@ -1,17 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Homepage</title>
-</head>
-<body>
-    <h2>Welcome, {{ request.user.username }}</h2>
+{% extends 'layout/base.html' %}
 
-    <!-- Tombol Logout -->
-    <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit">Logout</button>
-    </form>
+{% block title %}Home{% endblock %}
 
-    <!-- Konten lainnya -->
-</body>
-</html>
+{% block content %}
+<h2>Welcome, {{ request.user.username }}!</h2>
+<p>This is your homepage.</p>
+{% endblock %}
