@@ -4,14 +4,14 @@ from ..form import UserForm
 
 def userList(request):
     users = User.objects.all()
-    return render(request, 'user.html', {'users' : users})
+    return render(request, 'user/user.html', {'users' : users})
 
 def create(request):
     form = UserForm(request.POST or None)
     if form.is_valid():
         form.save()
         return redirect('userList')
-    return render(request, 'userform.html', {'form' : form})
+    return render(request, 'user/userform.html', {'form' : form})
 
 def update(request, pk):
     user = get_object_or_404(User, pk=pk)
@@ -19,7 +19,7 @@ def update(request, pk):
     if form.is_valid():
         form.save()
         return redirect('userList')
-    return render(request, 'userform.html', {'form' : form})
+    return render(request, 'user/userform.html', {'form' : form})
         
     
 def delete(request, pk):
@@ -27,4 +27,4 @@ def delete(request, pk):
     if request.method == 'POST':
         user.delete()
         return redirect('userList')
-    return render(request, 'user.html', {'user' : user})
+    return render(request, 'user/user.html', {'user' : user})
