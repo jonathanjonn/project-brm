@@ -4,12 +4,31 @@ import json
 from datetime import date
 from ..models.stok import Stok
 from ..models.transaksi import Transaksi
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 @login_required
 def transaction_view(request):
-    return render(request, 'page/transaction.html')
+    if request.method == "POST":
+        stok_id = request.POST.get('stok_id')
+        qty = int(request.POST.get('qty'))
+        tanggal_transaksi = request.POST.get('tanggal_transaksi')
+
+        try:
+            stok = Stok.objects.get(id=stok_id)
+            total_harga = stok.harga * qty
+            Transaksi.objects.create(
+                stok_id=stok,
+                qty=qty,
+                total_harga=total_harga,
+                tanggal_transaksi=tanggal_transaksi,
+            )
+            return redirect('transaction_view') 
+        except Stok.DoesNotExist:
+            pass
+
+    transaksi_list = Transaksi.objects.select_related('stok_id').order_by('-created_at')
+    return render(request, 'page/transaction.html', {'transaksi_list': transaksi_list})
 
 # @csrf_exempt
 @login_required

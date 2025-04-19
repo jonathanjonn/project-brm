@@ -24,17 +24,86 @@
         <div class="col-md-2">
             <a href="{% url 'stock_list' %}" class="btn btn-secondary w-100">Reset</a>
         </div>
+        
+        <!-- Hidden fields to maintain sorting when filtering -->
+        <input type="hidden" name="sort" value="{{ current_sort }}">
+        <input type="hidden" name="order" value="{{ current_order }}">
     </form>
 
     <div class="table-responsive">
         <table class="table table-bordered table-hover align-middle">
             <thead class="table-dark">
                 <tr>
-                    <th>Nama</th>
-                    <th>Kategori</th>
-                    <th>Harga</th>
-                    <th>Stok</th>
-                    <th>Dibuat</th>
+                    <th>
+                        Nama
+                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=nama&order={% if current_sort == 'nama' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white float-end">
+                            {% if current_sort == 'nama' %}
+                                {% if current_order == 'asc' %}
+                                    <i class="fas fa-sort-up"></i>
+                                {% else %}
+                                    <i class="fas fa-sort-down"></i>
+                                {% endif %}
+                            {% else %}
+                                <i class="fas fa-sort"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th>
+                        Kategori
+                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=kategori&order={% if current_sort == 'kategori' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white float-end">
+                            {% if current_sort == 'kategori' %}
+                                {% if current_order == 'asc' %}
+                                    <i class="fas fa-sort-up"></i>
+                                {% else %}
+                                    <i class="fas fa-sort-down"></i>
+                                {% endif %}
+                            {% else %}
+                                <i class="fas fa-sort"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th>
+                        Harga
+                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=harga&order={% if current_sort == 'harga' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white float-end">
+                            {% if current_sort == 'harga' %}
+                                {% if current_order == 'asc' %}
+                                    <i class="fas fa-sort-up"></i>
+                                {% else %}
+                                    <i class="fas fa-sort-down"></i>
+                                {% endif %}
+                            {% else %}
+                                <i class="fas fa-sort"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th>
+                        Stok
+                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=stok&order={% if current_sort == 'stok' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white float-end">
+                            {% if current_sort == 'stok' %}
+                                {% if current_order == 'asc' %}
+                                    <i class="fas fa-sort-up"></i>
+                                {% else %}
+                                    <i class="fas fa-sort-down"></i>
+                                {% endif %}
+                            {% else %}
+                                <i class="fas fa-sort"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th>
+                        Dibuat
+                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=created_at&order={% if current_sort == 'created_at' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white float-end">
+                            {% if current_sort == 'created_at' %}
+                                {% if current_order == 'asc' %}
+                                    <i class="fas fa-sort-up"></i>
+                                {% else %}
+                                    <i class="fas fa-sort-down"></i>
+                                {% endif %}
+                            {% else %}
+                                <i class="fas fa-sort"></i>
+                            {% endif %}
+                        </a>
+                    </th>
                 </tr>
             </thead>
             <tbody>

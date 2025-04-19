@@ -1,31 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transaction Form</title>
-</head>
-<body>
-    <h1>Transaction Form</h1>
-    <form action="http://127.0.0.1:8000/transaction/" method="POST">
+{% extends 'layout/base.html' %}
+{% load humanize %}
+{% block title %}Form Transaksi{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Form Transaksi</h2>
+
+    <form method="post" action="{% url 'transaction' %}" class="card p-4 shadow-sm mb-5">
         {% csrf_token %}
-        <label for="stok_id">ID barang:</label>
-        <input type="number" id="stok_id" name="stok_id" required>
-        <br><br>
+        <div class="mb-3">
+            <label for="stok_id" class="form-label">ID Barang</label>
+            <input type="number" class="form-control" id="stok_id" name="stok_id" required>
+        </div>
 
-        <label for="qty">Quantity:</label>
-        <input type="number" id="qty" name="qty" required>
-        <br><br>
+        <div class="mb-3">
+            <label for="qty" class="form-label">Quantity</label>
+            <input type="number" class="form-control" id="qty" name="qty" required>
+        </div>
 
-        <!-- <label for="total_harga">Total Harga:</label>
-        <input type="number" id="total_harga" name="total_harga" required>
-        <br><br> -->
+        <div class="mb-3">
+            <label for="tanggal_transaksi" class="form-label">Tanggal Transaksi</label>
+            <input type="date" class="form-control" id="tanggal_transaksi" name="tanggal_transaksi" required>
+        </div>
 
-        <label for="tanggal_transaksi">Tanggal Transaksi:</label>
-        <input type="date" id="tanggal_transaksi" name="tanggal_transaksi" required>
-        <br><br>
-
-        <button type="submit">Submit</button>
+        <button type="submit" class="btn btn-primary">Submit</button>
     </form>
-</body>
-</html> 
+
+    <h3 class="mb-3">Riwayat Transaksi</h3>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nama Barang</th>
+                    <th>Qty</th>
+                    <th>Total Harga</th>
+                    <th>Tanggal Transaksi</th>
+                    <th>Dibuat Pada</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trx in transaksi_list %}
+                <tr>
+                    <td>{{ trx.id }}</td>
+                    <td>{{ trx.stok_id.nama }}</td>
+                    <td>{{ trx.qty }}</td>
+                    <td>Rp {{ trx.total_harga|intcomma }}</td>
+                    <td>{{ trx.tanggal_transaksi|date:"d M Y" }}</td>
+                    <td>{{ trx.created_at|date:"d M Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">Belum ada transaksi.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
