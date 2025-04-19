@@ -14,7 +14,7 @@
             <select name="kategori" class="form-select">
                 <option value="">Semua Kategori</option>
                 {% for k in kategori_list %}
-                    <option value="{{ k }}" {% if k == selected_kategori %}selected{% endif %}>{{ k }}</option>
+                    <option value="{{ k }}" {% if k == selected_kategori|lower %}selected{% endif %}>{{ k|capfirst }}</option>
                 {% endfor %}
             </select>
         </div>

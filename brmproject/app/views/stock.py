@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 @login_required
 def stock_list(request):
     search_query = request.GET.get('q', '')
-    selected_kategori = request.GET.get('kategori', '')
+    selected_kategori = request.GET.get('kategori', '').lower()
     current_sort = request.GET.get('sort', 'nama') 
     current_order = request.GET.get('order', 'asc')
 
@@ -22,11 +22,12 @@ def stock_list(request):
         stoks = stoks.filter(nama__icontains=search_query)
 
     if selected_kategori:
-        stoks = stoks.filter(kategori=selected_kategori)
+        stoks = stoks.filter(kategori__iexact=selected_kategori)
 
     stoks = stoks.order_by(sort_expression)
 
-    kategori_list = Stok.objects.values_list('kategori', flat=True).distinct()
+    kategori_list_raw = Stok.objects.values_list('kategori', flat=True)
+    kategori_list = sorted(set(k.lower() for k in kategori_list_raw if k))
 
     context = {
         'stoks': stoks,
@@ -37,6 +38,7 @@ def stock_list(request):
         'current_order': current_order,
     }
     return render(request, 'page/stock.html', context)
+
 
 
 def create_stock(request):
