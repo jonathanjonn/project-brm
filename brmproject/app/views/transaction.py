@@ -25,7 +25,7 @@ def transaction(request):
 
             stok_item = Stok.objects.get(id=stok_id)
 
-            if stok_item.stok < qty:
+            if stok_item.stok < qty and tipe == 2:
                 return JsonResponse({'error': 'Stok tidak mencukupi'}, status=400)
 
             total_harga = stok_item.harga * qty
@@ -48,7 +48,7 @@ def transaction(request):
             return redirect('transaction_view')
         
         except Stok.DoesNotExist:
-            return render(request, 'transaksi.html', {
+            return render(request, 'page/transaksi.html', {
                 'error': 'Barang tidak ditemukan'
             })
 

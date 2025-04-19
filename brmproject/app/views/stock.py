@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.db.models import F
 from ..models import Stok
 from django.contrib.auth.decorators import login_required
@@ -55,9 +55,12 @@ def create_stock(request):
         except ValueError:
             raise ValueError('Harga dan stok awal harus berupa angka')
 
-        return Stok.objects.create(
+        Stok.objects.create(
             nama=nama,
             harga=harga,
             kategori=kategori,
             stok=stok
         )
+        
+        return redirect('transaction_view')
+    return render(request, 'page/create_stock.html')

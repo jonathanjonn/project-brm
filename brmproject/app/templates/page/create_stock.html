@@ -1,0 +1,32 @@
+{% extends 'layout/base.html' %}
+{% load humanize %}
+{% block title %}Form Create Stock{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Form Create Stock</h2>
+
+    <form method="post" action="{% url 'create_stock' %}" class="card p-4 shadow-sm mb-5">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="nama" class="form-label">Nama</label>
+            <input type="text" class="form-control" id="nama" name="nama" required>
+        </div>
+        <div class="mb-3">
+            <label for="harga" class="form-label">Harga</label>
+            <input type="number" class="form-control" id="harga" name="harga" required>
+        </div>
+        <div class="mb-3">
+            <label for="kategori" class="form-label">Kategori</label>
+            <input type="text" class="form-control" id="kategori" name="kategori" required>
+        </div>
+        <div class="mb-3">
+            <label for="stok" class="form-label">Stok</label>
+            <input type="number" class="form-control" id="stok" name="stok" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </body>
+</html>
+{% endblock %}
