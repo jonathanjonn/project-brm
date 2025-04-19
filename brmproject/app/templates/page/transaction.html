@@ -10,12 +10,30 @@
         {% csrf_token %}
         <div class="mb-3">
             <label for="stok_id" class="form-label">ID Barang</label>
-            <input type="number" class="form-control" id="stok_id" name="stok_id" required>
+            <select id="stok_id" name="stok_id" required onchange="checkCreateNew(this)">
+                <option value="">-- Pilih Stok --</option>
+                <option value="create_new">➕ Buat data baru</option>
+                {% for stok in stock_list %}
+                  <option value="{{ stok.id }}">
+                    {{ stok.nama }} (ID: {{ stok.id }}, Stok: {{ stok.stok }})
+                  </option>
+                {% endfor %}
+              </select>
         </div>
 
         <div class="mb-3">
             <label for="qty" class="form-label">Quantity</label>
             <input type="number" class="form-control" id="qty" name="qty" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="tipe">Tipe Transaksi:</label>
+            <select id="tipe" name="tipe" required>
+                <option value="">-- Pilih Tipe --</option>
+                {% for value, label in tipe_transaksi %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
         </div>
 
         <div class="mb-3">
@@ -63,4 +81,12 @@
         </table>
     </div>
 </div>
+
+<script>
+    function checkCreateNew(selectElement) {
+      if (selectElement.value === 'create_new') {
+        window.location.href = "{% url 'create_stock' %}";
+      }
+    }
+  </script>
 {% endblock %}

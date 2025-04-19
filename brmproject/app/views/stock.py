@@ -37,3 +37,27 @@ def stock_list(request):
         'current_order': current_order,
     }
     return render(request, 'page/stock.html', context)
+
+
+def create_stock(request):
+    if request.method == "POST":
+        nama = request.POST.get("nama")
+        harga = request.POST.get("harga")
+        kategori = request.POST.get("kategori")
+        stok = request.POST.get("stok")
+        
+        if not all([nama, harga, kategori, stok]):
+            raise ValueError('Data untuk membuat stok baru tidak lengkap')
+
+        try:
+            harga = int(harga)
+            stok = int(stok)
+        except ValueError:
+            raise ValueError('Harga dan stok awal harus berupa angka')
+
+        return Stok.objects.create(
+            nama=nama,
+            harga=harga,
+            kategori=kategori,
+            stok=stok
+        )

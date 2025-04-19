@@ -9,26 +9,11 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def transaction_view(request):
-    if request.method == "POST":
-        stok_id = request.POST.get('stok_id')
-        qty = int(request.POST.get('qty'))
-        tanggal_transaksi = request.POST.get('tanggal_transaksi')
-
-        try:
-            stok = Stok.objects.get(id=stok_id)
-            total_harga = stok.harga * qty
-            Transaksi.objects.create(
-                stok_id=stok,
-                qty=qty,
-                total_harga=total_harga,
-                tanggal_transaksi=tanggal_transaksi,
-            )
-            return redirect('transaction_view') 
-        except Stok.DoesNotExist:
-            pass
-
     transaksi_list = Transaksi.objects.select_related('stok_id').order_by('-created_at')
-    return render(request, 'page/transaction.html', {'transaksi_list': transaksi_list})
+    stock_list = Stok.objects.all()
+    import pdb;pdb.set_trace()
+    tipe_transaksi = Transaksi.TIPE_TRANSAKSI
+    return render(request, 'page/transaction.html', {'transaksi_list': transaksi_list, 'stock_list': stock_list, 'tipe_transaksi': tipe_transaksi})
 
 # @csrf_exempt
 @login_required
@@ -53,7 +38,7 @@ def transaction(request):
 
             stok_item.save()
 
-            transaksi = Transaksi.objects.create(
+            Transaksi.objects.create(
                 stok_id=stok_item,
                 qty=qty,
                 total_harga=total_harga,
@@ -61,16 +46,21 @@ def transaction(request):
                 tanggal_transaksi=date.today()
             )
 
-            return JsonResponse({
-                'message': 'Transaksi berhasil',
-                'transaksi_id': transaksi.id,
-                'total_harga': total_harga
-            }, status=201)
+            return redirect('transaction_view')
+        
+        except Stok.DoesNotExist:
+            return render(request, 'transaksi.html', {
+                'error': 'Barang tidak ditemukan'
+            })
 
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+            return render(request, 'page/transaksi.html', {
+                'error': f'Terjadi kesalahan: {str(e)}'
+            })
     else:
-        return JsonResponse({'error': 'Metode tidak diizinkan'}, status=405)
+        return render(request, 'page/transaksi.html', {
+                'error': f'Metode tidak di izinkan'
+            })
 
 @login_required
 def prediksi_stok(request):
