@@ -3,6 +3,7 @@ from django.views.generic import RedirectView
 from django.contrib.auth.decorators import login_required
 from .views.auth import login_view, register_view, logout_view, home_view, user_delete_view, user_list_view, user_update_view
 from .views.transaction import transaction,transaction_view
+from .views.stock import stock_list
 
 
 urlpatterns = [
@@ -17,4 +18,5 @@ urlpatterns = [
     path('users/delete/<int:user_id>/', user_delete_view, name='user_delete'),
     path('transaction_view/',transaction_view, name='transaction_view'),
     path('transaction/',transaction, name='transaction'),
+    path('stock/', stock_list, name='stock_list'),
 ]

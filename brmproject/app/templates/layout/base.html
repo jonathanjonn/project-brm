@@ -55,6 +55,7 @@
     <div class="sidebar">
         <h4 class="text-center text-white py-3">My App</h4>
         <a href="{% url 'homepage' %}">Home</a>
+        <a href="{% url 'stock_list' %}">Manage Stock</a>
 
         {% if request.user.is_superuser %}
         <a href="{% url 'user_list' %}">Manage User</a>

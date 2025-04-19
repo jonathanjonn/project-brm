@@ -1,0 +1,58 @@
+{% extends 'layout/base.html' %}
+{% load humanize %}
+{% block title %}Daftar Stok{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Daftar Stok</h2>
+
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <input type="text" name="q" placeholder="Cari nama..." value="{{ search_query|default_if_none:'' }}" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <select name="kategori" class="form-select">
+                <option value="">Semua Kategori</option>
+                {% for k in kategori_list %}
+                    <option value="{{ k }}" {% if k == selected_kategori %}selected{% endif %}>{{ k }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+        <div class="col-md-2">
+            <a href="{% url 'stock_list' %}" class="btn btn-secondary w-100">Reset</a>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Nama</th>
+                    <th>Kategori</th>
+                    <th>Harga</th>
+                    <th>Stok</th>
+                    <th>Dibuat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in stoks %}
+                <tr>
+                    <td>{{ item.nama }}</td>
+                    <td>{{ item.kategori }}</td>
+                    <td>Rp {{ item.harga|intcomma }}</td>
+                    <td>{{ item.stok }}</td>
+                    <td>{{ item.created_at|date:"d M Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">Data tidak ditemukan.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
