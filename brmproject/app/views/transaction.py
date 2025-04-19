@@ -11,7 +11,6 @@ from django.contrib.auth.decorators import login_required
 def transaction_view(request):
     transaksi_list = Transaksi.objects.select_related('stok_id').order_by('-created_at')
     stock_list = Stok.objects.all()
-    import pdb;pdb.set_trace()
     tipe_transaksi = Transaksi.TIPE_TRANSAKSI
     return render(request, 'page/transaction.html', {'transaksi_list': transaksi_list, 'stock_list': stock_list, 'tipe_transaksi': tipe_transaksi})
 
@@ -34,7 +33,7 @@ def transaction(request):
             if tipe == 1:
                 stok_item.stok += qty
             elif tipe == 2:
-                stok_item.stok = qty
+                stok_item.stok -= qty
 
             stok_item.save()
 

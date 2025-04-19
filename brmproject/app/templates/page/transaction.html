@@ -4,89 +4,97 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">Form Transaksi</h2>
+<h2 class="mb-4">Form Transaksi</h2>
 
-    <form method="post" action="{% url 'transaction' %}" class="card p-4 shadow-sm mb-5">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="stok_id" class="form-label">ID Barang</label>
-            <select id="stok_id" name="stok_id" required onchange="checkCreateNew(this)">
-                <option value="">-- Pilih Stok --</option>
-                <option value="create_new">➕ Buat data baru</option>
-                {% for stok in stock_list %}
-                  <option value="{{ stok.id }}">
-                    {{ stok.nama }} (ID: {{ stok.id }}, Stok: {{ stok.stok }})
-                  </option>
-                {% endfor %}
-              </select>
-        </div>
+<form method="post" action="{% url 'transaction' %}" class="card p-4 shadow-sm mb-5">
+	{% csrf_token %}
+	<div class="mb-3">
+	<label for="stok_id" class="form-label">ID Barang</label>
+	<select id="stok_id" name="stok_id" class="form-select" required onchange="checkCreateNew(this)">
+		<option value="">-- Pilih Stok --</option>
+		<option value="create_new">➕ Buat data baru</option>
+		{% for stok in stock_list %}
+		<option value="{{ stok.id }}">
+		{{ stok.nama }} (ID: {{ stok.id }}, Stok: {{ stok.stok }})
+		</option>
+		{% endfor %}
+	</select>
+	</div>
 
-        <div class="mb-3">
-            <label for="qty" class="form-label">Quantity</label>
-            <input type="number" class="form-control" id="qty" name="qty" required>
-        </div>
+	<div class="mb-3">
+	<label for="qty" class="form-label">Quantity</label>
+	<input type="number" class="form-control" id="qty" name="qty" min="1" required>
+	</div>
 
-        <div class="mb-3">
-            <label for="tipe">Tipe Transaksi:</label>
-            <select id="tipe" name="tipe" required>
-                <option value="">-- Pilih Tipe --</option>
-                {% for value, label in tipe_transaksi %}
-                <option value="{{ value }}">{{ label }}</option>
-                {% endfor %}
-            </select>
-        </div>
+	<div class="mb-3">
+	<label for="tipe" class="form-label">Tipe Transaksi</label>
+	<select id="tipe" name="tipe" class="form-select" required>
+		<option value="">-- Pilih Tipe --</option>
+		{% for value, label in tipe_transaksi %}
+		<option value="{{ value }}">{{ label }}</option>
+		{% endfor %}
+	</select>
+	</div>
 
-        <div class="mb-3">
-            <label for="tanggal_transaksi" class="form-label">Tanggal Transaksi</label>
-            <input type="date" class="form-control" id="tanggal_transaksi" name="tanggal_transaksi" required>
-        </div>
+	<div class="mb-3">
+	<label for="tanggal_transaksi" class="form-label">Tanggal Transaksi</label>
+	<input type="date" class="form-control" id="tanggal_transaksi" name="tanggal_transaksi" required>
+	</div>
 
-      <button type="submit">Submit</button>
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
-  </body>
-</html>
+	<button type="submit" class="btn btn-primary w-100">Submit</button>
+</form>
 
+<h3 class="mb-3">Riwayat Transaksi</h3>
 
-    <h3 class="mb-3">Riwayat Transaksi</h3>
-
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Nama Barang</th>
-                    <th>Qty</th>
-                    <th>Total Harga</th>
-                    <th>Tanggal Transaksi</th>
-                    <th>Dibuat Pada</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for trx in transaksi_list %}
-                <tr>
-                    <td>{{ trx.id }}</td>
-                    <td>{{ trx.stok_id.nama }}</td>
-                    <td>{{ trx.qty }}</td>
-                    <td>Rp {{ trx.total_harga|intcomma }}</td>
-                    <td>{{ trx.tanggal_transaksi|date:"d M Y" }}</td>
-                    <td>{{ trx.created_at|date:"d M Y H:i" }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="text-center">Belum ada transaksi.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="table-responsive">
+	<table class="table table-bordered table-hover align-middle">
+	<thead class="table-dark">
+		<tr>
+		<th>ID</th>
+		<th>Nama Barang</th>
+		<th>Qty</th>
+		<th>Total Harga</th>
+		<th>Tipe</th>
+		<th>Tanggal Transaksi</th>
+		<th>Dibuat Pada</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for trx in transaksi_list %}
+		<tr class="{% if trx.tipe == 1 %}table-danger{% elif trx.tipe == 2 %}table-success{% endif %}">
+			<td>{{ trx.id }}</td>
+			<td>{{ trx.stok_id.nama }}</td>
+			<td>{{ trx.qty }}</td>
+			<td>
+				{% if trx.tipe == 1 %}
+					- Rp {{ trx.total_harga|intcomma }}
+				{% else %}
+					Rp {{ trx.total_harga|intcomma }}
+				{% endif %}
+			</td>
+			<td>
+				<span class="badge {% if trx.tipe == 1 %}bg-danger{% elif trx.tipe == 2 %}bg-success{% endif %}">
+					{{ trx.get_tipe_display }}
+				</span>
+			</td>
+			<td>{{ trx.tanggal_transaksi|date:"d M Y" }}</td>
+			<td>{{ trx.created_at|date:"d M Y H:i" }}</td>
+		</tr>
+		{% empty %}
+		<tr>
+			<td colspan="7" class="text-center">Belum ada transaksi.</td>
+		</tr>
+		{% endfor %}
+	</tbody>	
+	</table>
+</div>
 </div>
 
 <script>
-    function checkCreateNew(selectElement) {
-      if (selectElement.value === 'create_new') {
-        window.location.href = "{% url 'create_stock' %}";
-      }
-    }
-  </script>
+function checkCreateNew(selectElement) {
+	if (selectElement.value === 'create_new') {
+	window.location.href = "{% url 'create_stock' %}";
+	}
+}
+</script>
 {% endblock %}
