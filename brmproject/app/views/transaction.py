@@ -37,6 +37,7 @@ def transaction(request):
         try:
             stok_id = request.POST.get('stok_id')
             qty = int(request.POST.get('qty'))
+            tipe = int(request.POST.get('tipe'))
 
             stok_item = Stok.objects.get(id=stok_id)
 
@@ -45,13 +46,18 @@ def transaction(request):
 
             total_harga = stok_item.harga * qty
 
-            stok_item.stok -= qty
+            if tipe == 1:
+                stok_item.stok += qty
+            elif tipe == 2:
+                stok_item.stok = qty
+
             stok_item.save()
 
             transaksi = Transaksi.objects.create(
                 stok_id=stok_item,
                 qty=qty,
                 total_harga=total_harga,
+                tipe=tipe,
                 tanggal_transaksi=date.today()
             )
 
@@ -61,11 +67,12 @@ def transaction(request):
                 'total_harga': total_harga
             }, status=201)
 
-        except Stok.DoesNotExist:
-            return JsonResponse({'error': 'Barang tidak ditemukan'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Metode tidak diizinkan'}, status=405)
 
+@login_required
+def prediksi_stok(request):
+    pass
 
