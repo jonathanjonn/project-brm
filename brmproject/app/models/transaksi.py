@@ -8,7 +8,7 @@ class Transaksi(models.Model):
     id = models.AutoField(primary_key=True)
     stok_id = models.ForeignKey('Stok', on_delete=models.SET_NULL, null=True)
     qty = models.IntegerField()
-    total_harga = models.IntegerField()
+    total_harga = models.BigIntegerField()
     tanggal_transaksi = models.DateField()
     tipe = models.IntegerField(choices=TIPE_TRANSAKSI)
     created_at = models.DateTimeField(auto_now_add=True)

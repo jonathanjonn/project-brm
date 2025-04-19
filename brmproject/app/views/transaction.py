@@ -22,6 +22,7 @@ def transaction(request):
             stok_id = request.POST.get('stok_id')
             qty = int(request.POST.get('qty'))
             tipe = int(request.POST.get('tipe'))
+            tanggal_transaksi = request.POST.get('tanggal_transaksi')
 
             stok_item = Stok.objects.get(id=stok_id)
 
@@ -42,26 +43,22 @@ def transaction(request):
                 qty=qty,
                 total_harga=total_harga,
                 tipe=tipe,
-                tanggal_transaksi=date.today()
+                tanggal_transaksi=tanggal_transaksi
             )
 
             return redirect('transaction_view')
         
         except Stok.DoesNotExist:
-            return render(request, 'page/transaksi.html', {
+            return render(request, 'page/transaction.html', {
                 'error': 'Barang tidak ditemukan'
             })
 
         except Exception as e:
-            return render(request, 'page/transaksi.html', {
+            return render(request, 'page/transaction.html', {
                 'error': f'Terjadi kesalahan: {str(e)}'
             })
     else:
-        return render(request, 'page/transaksi.html', {
+        return render(request, 'page/transaction.html', {
                 'error': f'Metode tidak di izinkan'
             })
-
-@login_required
-def prediksi_stok(request):
-    pass
 
