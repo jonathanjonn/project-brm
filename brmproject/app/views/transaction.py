@@ -6,6 +6,8 @@ from ..models.stok import Stok
 from ..models.transaksi import Transaksi
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
+from django.contrib import messages
 
 @login_required
 def transaction_view(request):
@@ -46,6 +48,7 @@ def transaction(request):
                 tanggal_transaksi=tanggal_transaksi
             )
 
+            messages.info(request, 'Data Berhasil Ditambahkan')
             return redirect('transaction_view')
         
         except Stok.DoesNotExist:

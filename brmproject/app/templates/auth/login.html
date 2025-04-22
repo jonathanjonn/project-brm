@@ -29,17 +29,26 @@
 </head>
 <body>
 
-    <!-- Message Alert Box -->
-    {% if messages %}
+    <!-- Messages Section -->
     <div class="alert-container">
-        {% for message in messages %}
-            <div class="alert alert-danger alert-dismissible fade show small shadow-sm" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == "error" %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ message }}
+                    </div>
+                {% elif message.tags == "success" %}
+                    <div class="alert alert-success" role="alert">
+                        {{ message }}
+                    </div>
+                {% else %}
+                    <div class="alert alert-secondary" role="alert">
+                        {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
     </div>
-    {% endif %}
 
     <!-- Login Form -->
     <div class="login-container">

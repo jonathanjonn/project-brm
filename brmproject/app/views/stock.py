@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.db.models import F
 from ..models import Stok
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 @login_required
 def stock_list(request):
@@ -20,9 +21,11 @@ def stock_list(request):
 
     if search_query:
         stoks = stoks.filter(nama__icontains=search_query)
+        messages.success(request, "Filter Berhasil Dipasang")
 
     if selected_kategori:
         stoks = stoks.filter(kategori__iexact=selected_kategori)
+        messages.success(request, "Filter Berhasil Dipasang")
 
     stoks = stoks.order_by(sort_expression)
 
