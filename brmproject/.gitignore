@@ -1,12 +1,12 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*$py.class
 *.pyo
 *.pyd
 *.so
-*.pyc
 
-# Environments
+# Virtual Environments
 .env
 .venv/
 venv/
@@ -21,15 +21,11 @@ db.sqlite3
 media/
 staticfiles/
 
-# IDEs
+# IDEs and editors
 .vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace
-
-# Byte-compiled / optimized / DLL files
-*.py[cod]
-*$py.class
 
 # macOS
 .DS_Store
@@ -51,11 +47,9 @@ coverage.xml
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Migrations (optional)
+# Django migrations (optional to ignore compiled and cache)
 **/migrations/*.pyc
 **/migrations/__pycache__/
-# Optional: ignore initial migrations or all migrations
-# **/migrations/
 
 # MyPy
 .mypy_cache/
@@ -63,5 +57,5 @@ pip-delete-this-directory.txt
 # Pytest
 .pytest_cache/
 
-# VS Code Jupyter Notebook
+# Jupyter
 .ipynb_checkpoints/
