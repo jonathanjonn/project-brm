@@ -60,7 +60,7 @@
         <a href="{% url 'homepage' %}">Home</a>
         <a href="{% url 'stock_list' %}">Manage Stock</a>
         <a href="{% url 'transaction_view' %}">Transaction</a>
-        <a href="{% url 'stock_prediction' %}">Stock Prediction</a>
+        <a href="{% url 'stock_prediction_all' %}">Stock Prediction</a>
 
         {% if request.user.is_superuser %}
         <a href="{% url 'user_list' %}">Manage User</a>

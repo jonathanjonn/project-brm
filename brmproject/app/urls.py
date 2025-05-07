@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .views.auth import login_view, register_view, logout_view, home_view, user_delete_view, user_list_view, user_update_view
 from .views.transaction import transaction,transaction_view
 from .views.stock import stock_list, create_stock
-from .views.stock_prediction import stock_prediction, get_product_history
+from .views.stock_prediction import stock_prediction, get_product_history, stock_prediction_all
 
 
 urlpatterns = [
@@ -22,5 +22,6 @@ urlpatterns = [
     path('stock/', stock_list, name='stock_list'),
     path('create_stock/', create_stock, name='create_stock'),
     path('stock/prediction/', stock_prediction, name='stock_prediction'),
+    path('stock/prediction/all/', stock_prediction_all, name='stock_prediction_all'),
     path('stock/history/<int:product_id>/', get_product_history, name='get_product_history'),
 ]
