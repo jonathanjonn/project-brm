@@ -22,6 +22,23 @@
     .table-hover tbody tr:hover {
         background-color: rgba(0,0,0,.075);
     }
+    .metric-card {
+        border-radius: 8px;
+        border-left: 4px solid #0d6efd;
+        background-color: #f8f9fa;
+    }
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    .metric-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    .info-tooltip {
+        cursor: pointer;
+        color: #0d6efd;
+    }
 </style>
 {% endblock %}
 
@@ -89,6 +106,38 @@
                     <div class="card-body">
                         {% if plot_data %}
                             <img src="data:image/png;base64,{{ plot_data }}" class="img-fluid" alt="Prediction Chart">
+                            
+                            <!-- Model Metrics Section -->
+                            {% if validation_metrics %}
+                            <div class="mt-3 p-3 border rounded bg-light">
+                                <h6 class="mb-3">Metrik Evaluasi Model</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="metric-card p-2 mb-2">
+                                            <div class="metric-label">RMSE (Root Mean Squared Error)</div>
+                                            <div class="metric-value">{{ validation_metrics.rmse }}
+                                                <i class="fas fa-info-circle info-tooltip" 
+                                                   data-bs-toggle="tooltip" 
+                                                   title="Rata-rata error prediksi dalam unit yang sama dengan kuantitas. Semakin rendah semakin baik."></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="metric-card p-2 mb-2">
+                                            <div class="metric-label">MAPE (Mean Absolute Percentage Error)</div>
+                                            <div class="metric-value">{{ validation_metrics.mape }}%
+                                                <i class="fas fa-info-circle info-tooltip"
+                                                   data-bs-toggle="tooltip" 
+                                                   title="Persentase error rata-rata. Nilai di bawah 20% menunjukkan prediksi yang baik."></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="small text-muted mt-2">
+                                    <i class="fas fa-info-circle"></i> Metrik di atas berdasarkan validasi model menggunakan data historis.
+                                </div>
+                            </div>
+                            {% endif %}
                         {% else %}
                             <div class="alert alert-warning">
                                 Tidak dapat membuat grafik prediksi. Pastikan data transaksi cukup untuk analisis.
@@ -133,40 +182,77 @@
                                 </div>
                             {% endif %}
                             
-                            {% if selected_product.stok <= reorder_info.reorder_point %}
-                                <div class="alert alert-danger p-2">
-                                    <i class="fas fa-exclamation-triangle"></i> Stok di bawah titik pemesanan ulang. Segera tambah stok!
+                            {% if days_until_stockout == inf %}
+                                <div class="alert alert-success p-2 mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Stok Aman:</span>
+                                        <span class="fw-bold">Stok tidak akan habis dalam periode prediksi</span>
+                                    </div>
                                 </div>
-                            {% elif days_until_stockout < 14 %}
-                                <div class="alert alert-warning p-2">
-                                    <i class="fas fa-exclamation-circle"></i> Stok akan habis dalam waktu dekat. Pertimbangkan untuk menambah stok.
-                                </div>
+                            {% endif %}
+                            
+                            {% if recommendations %}
+                                {% for rec in recommendations %}
+                                    <div class="alert alert-{{ rec.level }} p-2">
+                                        <i class="fas fa-{% if rec.level == 'success' %}check-circle{% elif rec.level == 'warning' %}exclamation-circle{% elif rec.level == 'danger' %}exclamation-triangle{% else %}info-circle{% endif %}"></i> 
+                                        {{ rec.message }}
+                                    </div>
+                                {% endfor %}
                             {% else %}
-                                <div class="alert alert-success p-2">
-                                    <i class="fas fa-check-circle"></i> Stok dalam kondisi aman.
-                                </div>
+                                {% if selected_product.stok <= reorder_info.reorder_point %}
+                                    <div class="alert alert-danger p-2">
+                                        <i class="fas fa-exclamation-triangle"></i> Stok di bawah titik pemesanan ulang. Segera tambah stok!
+                                    </div>
+                                {% elif days_until_stockout < 14 %}
+                                    <div class="alert alert-warning p-2">
+                                        <i class="fas fa-exclamation-circle"></i> Stok akan habis dalam waktu dekat. Pertimbangkan untuk menambah stok.
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-success p-2">
+                                        <i class="fas fa-check-circle"></i> Stok dalam kondisi aman.
+                                    </div>
+                                {% endif %}
                             {% endif %}
                         {% endif %}
                     </div>
                 </div>
                 
-                <div class="card shadow-sm">
+                <div class="card shadow-sm mb-4">
                     <div class="card-header bg-secondary text-white">
                         <h5 class="mb-0">Riwayat Transaksi</h5>
                     </div>
                     <div class="card-body p-0">
+                        <div id="transaction-stats" class="p-3 bg-light border-bottom">
+                            <div class="row">
+                                <div class="col-4 text-center">
+                                    <div class="fw-bold" id="total-transactions">-</div>
+                                    <div class="small text-muted">Total Transaksi</div>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <div class="fw-bold" id="avg-quantity">-</div>
+                                    <div class="small text-muted">Rata-rata Qty</div>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <div class="fw-bold" id="last-transaction">-</div>
+                                    <div class="small text-muted">Transaksi Terakhir</div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
                             <table class="table table-hover table-sm mb-0">
                                 <thead class="table-light sticky-top">
                                     <tr>
                                         <th>Tanggal</th>
+                                        <th>Tipe</th>
                                         <th>Qty</th>
                                         <th>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody id="transaction-history">
                                     <tr>
-                                        <td colspan="3" class="text-center">Loading...</td>
+                                        <td colspan="3" class="text-center">
+                                            <div class="spinner-border text-primary" role="status"></div>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -178,12 +264,20 @@
         
         {% if forecast_dates and forecast_values %}
             <div class="card shadow-sm mb-4">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Detail Prediksi ({{ prediction_days }} hari ke depan)</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-download-csv">
+                            <i class="fas fa-download"></i> Download CSV
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modelInfoModal">
+                            <i class="fas fa-info-circle"></i> Info Model
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-striped table-hover" id="forecast-table">
                             <thead>
                                 <tr>
                                     <th>Tanggal</th>
@@ -193,9 +287,58 @@
                                 </tr>
                             </thead>
                             <tbody id="forecast-details">
-                                <!-- Will be filled by JavaScript -->
+                                <tr>
+                                    <td colspan="3" class="text-center">
+                                        <div class="spinner-border text-primary" role="status"></div>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Model Info Modal -->
+            <div class="modal fade" id="modelInfoModal" tabindex="-1" aria-labelledby="modelInfoModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="modelInfoModalLabel">Informasi Model Prediksi</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <h6>Tentang Model SARIMA</h6>
+                            <p>
+                                SARIMA (Seasonal AutoRegressive Integrated Moving Average) adalah model statistik untuk analisis dan prediksi data deret waktu. 
+                                Model ini memperhitungkan pola musiman dalam data historis untuk membuat prediksi yang lebih akurat.
+                            </p>
+                            
+                            <h6 class="mt-4">Interpretasi Hasil</h6>
+                            <ul>
+                                <li><strong>Prediksi Permintaan</strong>: Jumlah yang diperkirakan akan terjual setiap hari</li>
+                                <li><strong>Perkiraan Stok Akhir</strong>: Jumlah stok yang diperkirakan tersisa setelah permintaan dipenuhi</li>
+                                <li><strong>Titik Pemesanan Ulang</strong>: Level stok di mana Anda perlu melakukan pemesanan kembali</li>
+                            </ul>
+                            
+                            {% if validation_metrics %}
+                            <h6 class="mt-4">Metrik Akurasi Model</h6>
+                            <p>
+                                <strong>RMSE (Root Mean Squared Error)</strong>: {{ validation_metrics.rmse }}<br>
+                                <small class="text-muted">Mengukur rata-rata deviasi antara nilai prediksi dan aktual. Nilai lebih rendah menunjukkan prediksi lebih akurat.</small>
+                            </p>
+                            <p>
+                                <strong>MAPE (Mean Absolute Percentage Error)</strong>: {{ validation_metrics.mape }}%<br>
+                                <small class="text-muted">Mengukur rata-rata persentase kesalahan. MAPE < 10%: Sangat baik, 10-20%: Baik, 20-50%: Wajar, >50%: Kurang akurat.</small>
+                            </p>
+                            {% endif %}
+                            
+                            <div class="alert alert-info mt-3">
+                                <i class="fas fa-info-circle"></i> Prediksi stok didasarkan pada pola historis. Faktor eksternal seperti promosi, musiman, atau gangguan pasokan dapat memengaruhi akurasi.
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -210,68 +353,211 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    {% if selected_product_id %}
-        // Load transaction history
-        fetch('{% url "get_product_history" selected_product_id %}')
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    const tbody = document.getElementById('transaction-history');
-                    if (data.data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="3" class="text-center">Tidak ada data transaksi.</td></tr>';
-                    } else {
-                        tbody.innerHTML = '';
-                        data.data.forEach(item => {
-                            tbody.innerHTML += `
-                            <tr>
-                                <td>${item.date}</td>
-                                <td>${item.qty}</td>
-                                <td>Rp ${new Intl.NumberFormat('id-ID').format(item.total)}</td>
-                            </tr>`;
-                        });
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM Content Loaded');
+        
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Simpan ID produk yang dipilih saat ini dalam sessionStorage
+        {% if selected_product_id %}
+            sessionStorage.setItem('selectedProductId', '{{ selected_product_id }}');
+            
+            // Fungsi untuk memuat data transaksi
+            function loadTransactionHistory() {
+                console.log('Loading transaction history for product ID:', {{ selected_product_id }});
+                
+                fetch('{% url "get_product_history" selected_product_id %}')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        console.log("ok")
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Transaction data received:', data);
+                        
+                        const tbody = document.getElementById('transaction-history');
+                        if (!tbody) {
+                            console.error('Transaction history tbody element not found');
+                            return;
+                        }
+                        
+                        // Update transaction stats
+                        if (data.stats) {
+                            document.getElementById('total-transactions').textContent = data.stats.total_transactions || '-';
+                            document.getElementById('avg-quantity').textContent = data.stats.avg_quantity ? data.stats.avg_quantity.toFixed(1) : '-';
+                            document.getElementById('last-transaction').textContent = data.stats.last_transaction || '-';
+                        }
+                        
+                        if (!data.data || data.data.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data transaksi.</td></tr>';
+                        } else {
+                            tbody.innerHTML = '';
+                            data.data.forEach(item => {
+                                const tipeText = item.type === 1 ? 'Masuk' : item.type === 2 ? 'Keluar' : 'Lain-lain';
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${item.date}</td>
+                                    <td><span class="badge bg-${item.type === 1 ? 'success' : 'danger'}">${tipeText}</span></td>
+                                    <td>${item.qty}</td>
+                                    <td>Rp ${new Intl.NumberFormat('id-ID').format(item.total)}</td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                            
+                            // Tandai tabel sebagai sudah diisi
+                            tbody.dataset.loaded = 'true';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching transaction history:', error);
+                        const tbody = document.getElementById('transaction-history');
+                        if (tbody) {
+                            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error saat mengambil data transaksi: ' + error.message + '</td></tr>';
+                        }
+                    });
+            }
+            
+            // Fungsi untuk memuat detail prediksi
+            function loadForecastDetails() {
+                {% if forecast_dates and forecast_values %}
+                    console.log('Loading forecast details');
+                    try {
+                        const forecastDates = {{ forecast_dates|safe }};
+                        const forecastValues = {{ forecast_values|safe }};
+                        const currentStock = {{ current_stock|default:0 }};
+                        const reorderPoint = {{ reorder_info.reorder_point|default:0 }};
+                        
+                        console.log('Forecast dates:', forecastDates);
+                        console.log('Forecast values:', forecastValues);
+                        
+                        const tbody = document.getElementById('forecast-details');
+                        if (!tbody) {
+                            console.error('Forecast details tbody element not found');
+                            return;
+                        }
+                        
+                        // Cek apakah tabel sudah memiliki data yang benar
+                        if (tbody.dataset.loaded !== 'true' || tbody.childElementCount === 0) {
+                            let remainingStock = currentStock;
+                            tbody.innerHTML = '';
+                            
+                            forecastDates.forEach((date, index) => {
+                                const demand = forecastValues[index];
+                                remainingStock = Math.max(0, remainingStock - demand);
+                                
+                                let statusClass = 'success';
+                                let statusText = 'Stok Aman';
+                                
+                                if (remainingStock <= 0) {
+                                    statusClass = 'danger';
+                                    statusText = 'Stok Habis';
+                                } else if (remainingStock <= reorderPoint) {
+                                    statusClass = 'warning';
+                                    statusText = 'Perlu Reorder';
+                                }
+                                
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${date}</td>
+                                    <td>${parseFloat(demand).toFixed(2)}</td>
+                                    <td>${parseFloat(remainingStock).toFixed(2)}</td>
+                                    <td><span class="badge bg-${statusClass}">${statusText}</span></td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                            
+                            // Tandai tabel sebagai sudah diisi
+                            tbody.dataset.loaded = 'true';
+                        }
+                        
+                        // Setup CSV download
+                        setupCsvDownload(forecastDates, forecastValues, currentStock, reorderPoint);
+                        
+                    } catch (error) {
+                        console.error('Error rendering forecast table:', error);
+                        const tbody = document.getElementById('forecast-details');
+                        if (tbody) {
+                            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error saat menampilkan data prediksi: ' + error.message + '</td></tr>';
+                        }
                     }
-                } else {
-                    console.error(data.message);
+                {% else %}
+                    console.log('No forecast data available');
+                {% endif %}
+            }
+            
+            // Setup CSV download button
+            function setupCsvDownload(forecastDates, forecastValues, currentStock, reorderPoint) {
+                const downloadBtn = document.getElementById('btn-download-csv');
+                if (downloadBtn) {
+                    // Remove existing event listeners
+                    const newBtn = downloadBtn.cloneNode(true);
+                    downloadBtn.parentNode.replaceChild(newBtn, downloadBtn);
+                    
+                    newBtn.addEventListener('click', function() {
+                        let csvContent = "data:text/csv;charset=utf-8,";
+                        csvContent += "Tanggal,Prediksi Permintaan,Perkiraan Stok Akhir,Status\n";
+                        
+                        let remainingStock = currentStock;
+                        forecastDates.forEach((date, index) => {
+                            const demand = forecastValues[index];
+                            remainingStock = Math.max(0, remainingStock - demand);
+                            
+                            let statusText = 'Stok Aman';
+                            if (remainingStock <= 0) {
+                                statusText = 'Stok Habis';
+                            } else if (remainingStock <= reorderPoint) {
+                                statusText = 'Perlu Reorder';
+                            }
+                            
+                            csvContent += `${date},${demand.toFixed(2)},${remainingStock.toFixed(2)},${statusText}\n`;
+                        });
+                        
+                        // Create download link
+                        const encodedUri = encodeURI(csvContent);
+                        const link = document.createElement("a");
+                        link.setAttribute("href", encodedUri);
+                        link.setAttribute("download", "prediksi_stok_{{ selected_product.nama }}.csv");
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    });
                 }
-            })
-            .catch(error => console.error('Error fetching transaction history:', error));
+            }
             
-        {% if forecast_dates and forecast_values %}
-            // Populate forecast details table
-            const forecastDates = {{ forecast_dates|safe }};
-            const forecastValues = {{ forecast_values|safe }};
-            const currentStock = {{ current_stock }};
-            const tbody = document.getElementById('forecast-details');
+            // Panggil fungsi-fungsi untuk memuat data
+            loadTransactionHistory();
+            loadForecastDetails();
             
-            let remainingStock = currentStock;
-            tbody.innerHTML = '';
-            
-            forecastDates.forEach((date, index) => {
-                const demand = forecastValues[index];
-                remainingStock -= demand;
+            // Tambahkan interval untuk memeriksa apakah data perlu dimuat ulang
+            // Ini membantu mengatasi masalah data yang hilang setelah beberapa saat
+            const dataCheckInterval = setInterval(function() {
+                const transTbody = document.getElementById('transaction-history');
+                const forecastTbody = document.getElementById('forecast-details');
                 
-                let statusClass = 'success';
-                let statusText = 'Stok Aman';
-                
-                if (remainingStock <= 0) {
-                    statusClass = 'danger';
-                    statusText = 'Stok Habis';
-                } else if (remainingStock <= {{ reorder_info.reorder_point }}) {
-                    statusClass = 'warning';
-                    statusText = 'Perlu Reorder';
+                // Re-check transaction history
+                if (transTbody && (!transTbody.dataset.loaded || transTbody.innerHTML.trim() === '')) {
+                    console.log('Transaction history needs reloading');
+                    loadTransactionHistory();
                 }
                 
-                tbody.innerHTML += `
-                <tr>
-                    <td>${date}</td>
-                    <td>${demand.toFixed(2)}</td>
-                    <td>${remainingStock.toFixed(2)}</td>
-                    <td><span class="badge bg-${statusClass}">${statusText}</span></td>
-                </tr>`;
+                // Re-check forecast details
+                if (forecastTbody && (!forecastTbody.dataset.loaded || forecastTbody.innerHTML.trim() === '')) {
+                    console.log('Forecast details need reloading');
+                    loadForecastDetails();
+                }
+            }, 2000); // Check every 2 seconds
+            
+            // Clear interval when navigating away
+            window.addEventListener('beforeunload', function() {
+                clearInterval(dataCheckInterval);
             });
         {% endif %}
-    {% endif %}
-});
+    });
 </script>
 {% endblock %}
