@@ -59,3 +59,7 @@ pip-delete-this-directory.txt
 
 # Jupyter
 .ipynb_checkpoints/
+
+# etc files
+forecast_plot.png
+validation_plot.png
