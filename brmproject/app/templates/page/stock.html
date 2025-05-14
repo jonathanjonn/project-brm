@@ -36,7 +36,7 @@
                 <tr>
                     <th>
                         Nama
-                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=nama&order={% if current_sort == 'nama' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white float-end">
+                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=nama&order={% if current_sort == 'nama' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if stoks.number > 1 %}&page={{ stoks.number }}{% endif %}" class="text-white float-end">
                             {% if current_sort == 'nama' %}
                                 {% if current_order == 'asc' %}
                                     <i class="fas fa-sort-up"></i>
@@ -50,7 +50,7 @@
                     </th>
                     <th>
                         Kategori
-                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=kategori&order={% if current_sort == 'kategori' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white float-end">
+                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=kategori&order={% if current_sort == 'kategori' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if stoks.number > 1 %}&page={{ stoks.number }}{% endif %}" class="text-white float-end">
                             {% if current_sort == 'kategori' %}
                                 {% if current_order == 'asc' %}
                                     <i class="fas fa-sort-up"></i>
@@ -64,7 +64,7 @@
                     </th>
                     <th>
                         Harga
-                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=harga&order={% if current_sort == 'harga' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white float-end">
+                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=harga&order={% if current_sort == 'harga' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if stoks.number > 1 %}&page={{ stoks.number }}{% endif %}" class="text-white float-end">
                             {% if current_sort == 'harga' %}
                                 {% if current_order == 'asc' %}
                                     <i class="fas fa-sort-up"></i>
@@ -78,7 +78,7 @@
                     </th>
                     <th>
                         Stok
-                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=stok&order={% if current_sort == 'stok' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white float-end">
+                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=stok&order={% if current_sort == 'stok' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if stoks.number > 1 %}&page={{ stoks.number }}{% endif %}" class="text-white float-end">
                             {% if current_sort == 'stok' %}
                                 {% if current_order == 'asc' %}
                                     <i class="fas fa-sort-up"></i>
@@ -92,7 +92,7 @@
                     </th>
                     <th>
                         Update Terakhir
-                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=updated_at&order={% if current_sort == 'updated_at' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white float-end">
+                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=updated_at&order={% if current_sort == 'updated_at' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if stoks.number > 1 %}&page={{ stoks.number }}{% endif %}" class="text-white float-end">
                             {% if current_sort == 'updated_at' %}
                                 {% if current_order == 'asc' %}
                                     <i class="fas fa-sort-up"></i>
@@ -104,6 +104,7 @@
                             {% endif %}
                         </a>
                     </th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -114,14 +115,81 @@
                     <td>Rp {{ item.harga|intcomma }}</td>
                     <td>{{ item.stok }}</td>
                     <td>{{ item.updated_at|date:"d M Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'delete_stock' item.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus {{ item.nama }}?')">
+                            <i class="fas fa-trash"></i> Hapus
+                        </a>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center">Data tidak ditemukan.</td>
+                    <td colspan="6" class="text-center">Data tidak ditemukan.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
+    {% if stoks.paginator.num_pages > 1 %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if stoks.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort={{ current_sort }}&order={{ current_order }}&page=1" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort={{ current_sort }}&order={{ current_order }}&page={{ stoks.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for num in stoks.paginator.page_range %}
+                {% if stoks.number == num %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                {% elif num > stoks.number|add:'-3' and num < stoks.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort={{ current_sort }}&order={{ current_order }}&page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if stoks.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort={{ current_sort }}&order={{ current_order }}&page={{ stoks.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort={{ current_sort }}&order={{ current_order }}&page={{ stoks.paginator.num_pages }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 {% endblock %}

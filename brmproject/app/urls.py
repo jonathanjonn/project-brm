@@ -2,8 +2,8 @@ from django.urls import path
 from django.views.generic import RedirectView
 from django.contrib.auth.decorators import login_required
 from .views.auth import login_view, register_view, logout_view, home_view, user_delete_view, user_list_view, user_update_view
-from .views.transaction import transaction,transaction_view
-from .views.stock import stock_list, create_stock
+from .views.transaction import transaction,transaction_view, delete_transaction
+from .views.stock import stock_list, create_stock, delete_stock
 from .views.stock_prediction import stock_prediction, get_product_history, stock_prediction_all
 
 
@@ -24,4 +24,6 @@ urlpatterns = [
     path('stock/prediction/', stock_prediction, name='stock_prediction'),
     path('stock/prediction/all/', stock_prediction_all, name='stock_prediction_all'),
     path('stock/history/<int:product_id>/', get_product_history, name='get_product_history'),
+    path('stock/delete/<int:stock_id>/', delete_stock, name='delete_stock'),
+    path('transaction/delete/<int:transaction_id>/', delete_transaction, name='delete_transaction'),
 ]

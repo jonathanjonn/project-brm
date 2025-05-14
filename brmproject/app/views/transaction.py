@@ -4,17 +4,46 @@ import json
 from datetime import date
 from ..models.stok import Stok
 from ..models.transaksi import Transaksi
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.contrib import messages
+from django.core.paginator import Paginator
+from django.urls import reverse
 
 @login_required
 def transaction_view(request):
+    page = request.GET.get('page', 1)
     transaksi_list = Transaksi.objects.select_related('stok_id').order_by('-created_at')
+    
+    # Pagination - 30 data per halaman
+    paginator = Paginator(transaksi_list, 30)
+    transaksi_page = paginator.get_page(page)
+    
     stock_list = Stok.objects.all()
     tipe_transaksi = Transaksi.TIPE_TRANSAKSI
-    return render(request, 'page/transaction.html', {'transaksi_list': transaksi_list, 'stock_list': stock_list, 'tipe_transaksi': tipe_transaksi})
+    return render(request, 'page/transaction.html', {
+        'transaksi_list': transaksi_page, 
+        'stock_list': stock_list, 
+        'tipe_transaksi': tipe_transaksi
+    })
+
+@login_required
+def delete_transaction(request, transaction_id):
+    transaction = get_object_or_404(Transaksi, id=transaction_id)
+    
+    stok_item = transaction.stok_id
+    
+    if transaction.tipe == 1:
+        stok_item.stok -= transaction.qty
+    elif transaction.tipe == 2:
+        stok_item.stok += transaction.qty
+    
+    stok_item.save()
+    transaction.delete()
+    
+    messages.success(request, f"Transaksi dengan ID {transaction_id} berhasil dihapus")
+    return HttpResponseRedirect(reverse('transaction_view'))
 
 # @csrf_exempt
 @login_required
@@ -64,4 +93,3 @@ def transaction(request):
         return render(request, 'page/transaction.html', {
                 'error': f'Metode tidak di izinkan'
             })
-
