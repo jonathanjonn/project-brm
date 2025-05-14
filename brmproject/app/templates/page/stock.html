@@ -91,9 +91,9 @@
                         </a>
                     </th>
                     <th>
-                        Dibuat
-                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=created_at&order={% if current_sort == 'created_at' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white float-end">
-                            {% if current_sort == 'created_at' %}
+                        Update Terakhir
+                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_kategori %}kategori={{ selected_kategori }}&{% endif %}sort=updated_at&order={% if current_sort == 'updated_at' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-white float-end">
+                            {% if current_sort == 'updated_at' %}
                                 {% if current_order == 'asc' %}
                                     <i class="fas fa-sort-up"></i>
                                 {% else %}
@@ -113,7 +113,7 @@
                     <td>{{ item.kategori }}</td>
                     <td>Rp {{ item.harga|intcomma }}</td>
                     <td>{{ item.stok }}</td>
-                    <td>{{ item.created_at|date:"d M Y H:i" }}</td>
+                    <td>{{ item.updated_at|date:"d M Y H:i" }}</td>
                 </tr>
                 {% empty %}
                 <tr>

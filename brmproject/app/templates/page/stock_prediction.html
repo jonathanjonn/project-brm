@@ -106,38 +106,6 @@
                     <div class="card-body">
                         {% if plot_data %}
                             <img src="data:image/png;base64,{{ plot_data }}" class="img-fluid" alt="Prediction Chart">
-                            
-                            <!-- Model Metrics Section -->
-                            {% if validation_metrics %}
-                            <div class="mt-3 p-3 border rounded bg-light">
-                                <h6 class="mb-3">Metrik Evaluasi Model</h6>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="metric-card p-2 mb-2">
-                                            <div class="metric-label">RMSE (Root Mean Squared Error)</div>
-                                            <div class="metric-value">{{ validation_metrics.rmse }}
-                                                <i class="fas fa-info-circle info-tooltip" 
-                                                   data-bs-toggle="tooltip" 
-                                                   title="Rata-rata error prediksi dalam unit yang sama dengan kuantitas. Semakin rendah semakin baik."></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="metric-card p-2 mb-2">
-                                            <div class="metric-label">MAPE (Mean Absolute Percentage Error)</div>
-                                            <div class="metric-value">{{ validation_metrics.mape }}%
-                                                <i class="fas fa-info-circle info-tooltip"
-                                                   data-bs-toggle="tooltip" 
-                                                   title="Persentase error rata-rata. Nilai di bawah 20% menunjukkan prediksi yang baik."></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="small text-muted mt-2">
-                                    <i class="fas fa-info-circle"></i> Metrik di atas berdasarkan validasi model menggunakan data historis.
-                                </div>
-                            </div>
-                            {% endif %}
                         {% else %}
                             <div class="alert alert-warning">
                                 Tidak dapat membuat grafik prediksi. Pastikan data transaksi cukup untuk analisis.

@@ -19,6 +19,7 @@ class StockPredictor:
         self.difference_order = 1  # Default differencing order
         self.seasonal_difference = 1  # Default seasonal differencing
         self.seasonal_period = 7  # Default seasonality (weekly)
+        self.fitted_model = None
         
     def prepare_data(self, transactions, product_id=None, type_filter=2, handle_outliers=False):
         """
@@ -369,8 +370,8 @@ class StockPredictor:
             dict: Validation metrics
         """
         if self.history_data is None or self.fitted_model is None:
-            raise ValueError("Model must be trained first")
-            
+            self.train()
+        
         # Ensure test size is reasonable
         test_size = min(test_size, len(self.history_data) // 3)
         if test_size < 7:

@@ -11,7 +11,7 @@ def stock_list(request):
     current_sort = request.GET.get('sort', 'nama') 
     current_order = request.GET.get('order', 'asc')
 
-    allowed_sort_fields = ['nama', 'kategori', 'harga', 'stok', 'created_at']
+    allowed_sort_fields = ['nama', 'kategori', 'harga', 'stok', 'updated_at']
     if current_sort not in allowed_sort_fields:
         current_sort = 'nama'
 
