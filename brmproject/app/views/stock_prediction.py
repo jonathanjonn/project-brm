@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.core.paginator import Paginator
-from django.db.models import Sum, Count, F, Q
+from django.db.models import Sum, Count, F, Q, Max
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
@@ -15,17 +15,95 @@ import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
 import traceback
+import matplotlib.dates as mdates
+import math
 
 from ..models import Stok, Transaksi
 from ..models.prediction_model import StockPredictor
+from ..models.prediction_result import StockPredictionResult
 
 # Setup logger
 logger = logging.getLogger(__name__)
 
+def check_new_transactions(product_id):
+    """
+    Mengecek apakah ada transaksi baru sejak prediksi terakhir
+    
+    Args:
+        product_id: ID produk yang akan dicek
+        
+    Returns:
+        tuple: (ada_transaksi_baru, tanggal_transaksi_terakhir)
+    """
+    try:
+        # Ambil prediksi terakhir
+        last_prediction = StockPredictionResult.objects.filter(
+            product_id=product_id
+        ).order_by('-prediction_date').first()
+        
+        if not last_prediction:
+            return True, None  # Jika belum ada prediksi, anggap ada transaksi baru
+            
+        # Ambil transaksi terakhir
+        last_transaction = Transaksi.objects.filter(
+            stok_id=product_id
+        ).order_by('-tanggal_transaksi').first()
+        
+        if not last_transaction:
+            return False, last_prediction.prediction_date
+            
+        # Konversi tanggal ke datetime jika perlu
+        prediction_date = last_prediction.prediction_date
+        if isinstance(prediction_date, datetime):
+            prediction_date = prediction_date.date()
+            
+        transaction_date = last_transaction.tanggal_transaksi
+        if isinstance(transaction_date, datetime):
+            transaction_date = transaction_date.date()
+            
+        # Bandingkan tanggal
+        return transaction_date > prediction_date, last_transaction.tanggal_transaksi
+        
+    except Exception as e:
+        logger.error(f"Error checking new transactions: {str(e)}")
+        return True, None  # Jika error, anggap ada transaksi baru
+
+def get_latest_prediction(product_id):
+    """
+    Mengambil prediksi terakhir dari database
+    
+    Args:
+        product_id: ID produk
+        
+    Returns:
+        dict: Data prediksi terakhir
+    """
+    try:
+        prediction = StockPredictionResult.objects.filter(
+            product_id=product_id
+        ).order_by('-prediction_date').first()
+        
+        if not prediction:
+            return None
+            
+        forecast_data = prediction.get_forecast()
+        
+        return {
+            'forecast_dates': forecast_data.get('dates', []),
+            'forecast_values': forecast_data.get('values', []),
+            'reorder_point': prediction.reorder_point,
+            'expected_demand': prediction.expected_demand,
+            'days_until_stockout': prediction.days_until_stockout,
+            'current_stock': prediction.current_stock,
+            'prediction_date': prediction.prediction_date
+        }
+    except Exception as e:
+        logger.error(f"Error getting latest prediction: {str(e)}")
+        return None
+
 @login_required
 def stock_prediction(request):
     """View for stock prediction dashboard"""
-    products = Stok.objects.all().order_by('nama')
     selected_product_id = request.GET.get('product_id')
     
     try:
@@ -47,7 +125,6 @@ def stock_prediction(request):
         messages.warning(request, "Format lead time tidak valid. Menggunakan nilai default 7 hari.")
     
     context = {
-        'products': products,
         'selected_product_id': selected_product_id,
         'prediction_days': prediction_days,
         'lead_time': lead_time,
@@ -59,6 +136,69 @@ def stock_prediction(request):
             selected_product = get_object_or_404(Stok, id=selected_product_id)
             context['selected_product'] = selected_product
             
+            # Cek apakah ada transaksi baru
+            has_new_transactions, last_transaction_date = check_new_transactions(selected_product_id)
+            
+            if not has_new_transactions:
+                # Gunakan data dari database
+                prediction_data = get_latest_prediction(selected_product_id)
+                if prediction_data:
+                    # Generate visualization
+                    plt.figure(figsize=(10, 6))
+                    plt.plot(prediction_data['forecast_dates'], 
+                            prediction_data['forecast_values'], 
+                            color='red', label='Prediksi')
+                    
+                    # Add horizontal line for reorder point
+                    plt.axhline(y=prediction_data['reorder_point'], color='green', linestyle='--', 
+                               label=f'Reorder Point ({prediction_data["reorder_point"]:.2f})')
+                    
+                    # Add current stock level
+                    plt.axhline(y=selected_product.stok, color='blue', linestyle='-', 
+                               label=f'Stok Saat Ini ({selected_product.stok})')
+                    
+                    plt.title(f'Prediksi Stok: {selected_product.nama}')
+                    plt.xlabel('Tanggal')
+                    plt.ylabel('Jumlah')
+                    plt.legend()
+                    plt.grid(True)
+                    plt.xticks(rotation=45, ha='right')
+                    plt.tight_layout()
+                    
+                    # Save plot to buffer
+                    buffer = BytesIO()
+                    plt.savefig(buffer, format='png', dpi=100)
+                    buffer.seek(0)
+                    plot_data = base64.b64encode(buffer.getvalue()).decode('utf-8')
+                    plt.close()
+                    
+                    # Generate recommendations
+                    recommendations = generate_stock_recommendations(
+                        current_stock=selected_product.stok,
+                        reorder_point=prediction_data['reorder_point'],
+                        days_until_stockout=prediction_data['days_until_stockout'],
+                        expected_demand=prediction_data['expected_demand'],
+                        lead_time=lead_time
+                    )
+                    
+                    context.update({
+                        'plot_data': plot_data,
+                        'forecast_dates': json.dumps(prediction_data['forecast_dates']),
+                        'forecast_values': json.dumps(prediction_data['forecast_values']),
+                        'reorder_info': {
+                            'expected_demand': prediction_data['expected_demand'],
+                            'reorder_point': prediction_data['reorder_point']
+                        },
+                        'current_stock': selected_product.stok,
+                        'days_until_stockout': prediction_data['days_until_stockout'],
+                        'recommendations': recommendations,
+                        'prediction_date': prediction_data['prediction_date']
+                    })
+                    
+                    messages.info(request, f"Menggunakan prediksi terakhir dari {prediction_data['prediction_date'].strftime('%Y-%m-%d %H:%M')}")
+                    return render(request, 'page/stock_prediction.html', context)
+            
+            # Jika ada transaksi baru, lakukan prediksi baru
             # Get all transactions for this product
             transactions = Transaksi.objects.filter(
                 stok_id=selected_product_id
@@ -160,6 +300,7 @@ def stock_prediction(request):
                 plt.ylabel('Jumlah')
                 plt.legend()
                 plt.grid(True)
+                plt.xticks(rotation=45, ha='right')
                 plt.tight_layout()
                 
                 # Save plot to buffer
@@ -191,14 +332,42 @@ def stock_prediction(request):
                     lead_time=lead_time
                 )
                 
+                # Fungsi pembulatan half up
+                def round_half_up(n):
+                    return int(math.floor(n + 0.5))
+                
+                # Bulatkan forecast_values, reorder_point, expected_demand, days_until_stockout
+                forecast_values_rounded = [round_half_up(v) for v in forecast_values]
+                reorder_point_rounded = round_half_up(reorder_info['reorder_point'])
+                expected_demand_rounded = round_half_up(reorder_info['expected_demand'])
+                days_until_stockout_rounded = round_half_up(days_until_stockout)
+                
+                # Simpan hasil prediksi ke database
+                forecast_data = {
+                    'dates': forecast_dates,
+                    'values': forecast_values_rounded
+                }
+                
+                prediction_result = StockPredictionResult(
+                    product=selected_product,
+                    prediction_date=datetime.now(),
+                    current_stock=selected_product.stok,
+                    forecast_data=json.dumps(forecast_data),
+                    reorder_point=reorder_point_rounded,
+                    expected_demand=expected_demand_rounded,
+                    days_until_stockout=days_until_stockout_rounded
+                )
+                prediction_result.save()
+                
                 context.update({
                     'plot_data': plot_data,
                     'forecast_dates': json.dumps(forecast_dates),
-                    'forecast_values': json.dumps(forecast_values),
+                    'forecast_values': json.dumps(forecast_values_rounded),
                     'reorder_info': reorder_info,
                     'current_stock': selected_product.stok,
-                    'days_until_stockout': days_until_stockout,
-                    'recommendations': recommendations
+                    'days_until_stockout': days_until_stockout_rounded,
+                    'recommendations': recommendations,
+                    'prediction_date': datetime.now()
                 })
                 
             except Exception as e:
@@ -319,6 +488,52 @@ def stock_prediction_all(request):
     
     for product in products:
         try:
+            # Cek apakah ada transaksi baru
+            has_new_transactions, last_transaction_date = check_new_transactions(product.id)
+            
+            if not has_new_transactions:
+                # Gunakan data dari database
+                prediction_data = get_latest_prediction(product.id)
+                if prediction_data:
+                    # Generate recommendations
+                    recommendations = generate_stock_recommendations(
+                        current_stock=product.stok,
+                        reorder_point=prediction_data['reorder_point'],
+                        days_until_stockout=prediction_data['days_until_stockout'],
+                        expected_demand=prediction_data['expected_demand'],
+                        lead_time=lead_time
+                    )
+                    
+                    # Determine status
+                    status_class = 'success'
+                    status_text = 'Stok Aman'
+                    
+                    if product.stok <= 0:
+                        status_class = 'danger'
+                        status_text = 'Stok Habis'
+                    elif product.stok <= prediction_data['reorder_point']:
+                        status_class = 'warning'
+                        status_text = 'Perlu Reorder'
+                    
+                    # Apply status filter
+                    if status_filter and status_class != status_filter:
+                        continue
+                    
+                    # Add product with prediction data
+                    products_with_predictions.append({
+                        'id': product.id,
+                        'nama': product.nama,
+                        'stok': product.stok,
+                        'reorder_point': prediction_data['reorder_point'],
+                        'days_until_stockout': prediction_data['days_until_stockout'],
+                        'recommendations': recommendations,
+                        'status_class': status_class,
+                        'status_text': status_text,
+                        'prediction_date': prediction_data['prediction_date']
+                    })
+                    continue
+            
+            # Jika ada transaksi baru, lakukan prediksi baru
             # Get transactions for this product
             transactions = Transaksi.objects.filter(
                 stok_id=product.id
@@ -348,6 +563,7 @@ def stock_prediction_all(request):
             # Make predictions
             forecast_result = predictor.predict(steps=prediction_days)
             forecast = forecast_result['forecast']
+            confidence_intervals = forecast_result['confidence_intervals']
             
             # Calculate reorder point
             reorder_info = predictor.calculate_reorder_point(lead_time)
@@ -379,16 +595,48 @@ def stock_prediction_all(request):
             if status_filter and status_class != status_filter:
                 continue
             
+            # Format forecast data for template
+            forecast_dates = [d.strftime('%Y-%m-%d') for d in forecast.index]
+            forecast_values = [round(float(v), 2) for v in forecast.values]
+            
+            # Fungsi pembulatan half up
+            def round_half_up(n):
+                return int(math.floor(n + 0.5))
+            
+            # Bulatkan forecast_values, reorder_point, expected_demand, days_until_stockout
+            forecast_values_rounded = [round_half_up(v) for v in forecast_values]
+            reorder_point_rounded = round_half_up(reorder_info['reorder_point'])
+            expected_demand_rounded = round_half_up(reorder_info['expected_demand'])
+            days_until_stockout_rounded = round_half_up(days_until_stockout)
+            
+            # Simpan hasil prediksi ke database
+            forecast_data = {
+                'dates': forecast_dates,
+                'values': forecast_values_rounded
+            }
+            
+            prediction_result = StockPredictionResult(
+                product=product,
+                prediction_date=datetime.now(),
+                current_stock=product.stok,
+                forecast_data=json.dumps(forecast_data),
+                reorder_point=reorder_point_rounded,
+                expected_demand=expected_demand_rounded,
+                days_until_stockout=days_until_stockout_rounded
+            )
+            prediction_result.save()
+            
             # Add product with prediction data
             products_with_predictions.append({
                 'id': product.id,
                 'nama': product.nama,
                 'stok': product.stok,
-                'reorder_point': reorder_info['reorder_point'],
-                'days_until_stockout': days_until_stockout,
+                'reorder_point': reorder_point_rounded,
+                'days_until_stockout': days_until_stockout_rounded,
                 'recommendations': recommendations,
                 'status_class': status_class,
-                'status_text': status_text
+                'status_text': status_text,
+                'prediction_date': datetime.now()
             })
             
         except Exception as e:
