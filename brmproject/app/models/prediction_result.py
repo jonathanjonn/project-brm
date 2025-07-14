@@ -16,6 +16,8 @@ class StockPredictionResult(models.Model):
     reorder_point = models.FloatField(default=0)
     expected_demand = models.FloatField(default=0)
     days_until_stockout = models.IntegerField(null=True, blank=True)
+    lead_time = models.IntegerField(default=7)  # Menyimpan lead time yang digunakan
+    prediction_days = models.IntegerField(default=30)  # Menyimpan periode prediksi
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -1,17 +1,15 @@
+from ..models import Transaksi, Stok, StockPredictionResult
+from django.db.models import Sum
+from django.utils.formats import get_format
+from app.form import RegisterForm
+from datetime import timedelta, date, datetime
+from django.http import HttpResponseRedirect
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test, login_required
-from django.db.models import Sum
-from django.utils.formats import get_format
-from app.form import RegisterForm
-from datetime import timedelta, date, datetime
-from ..models import Transaksi
-from django.http import HttpResponseRedirect
-from ..models.transaksi import Transaksi
-from ..models.stok import Stok
 
 @login_required
 def home_view(request):
@@ -75,6 +73,25 @@ def home_view(request):
     stock_list = Stok.objects.all()
     tipe_transaksi = Transaksi.TIPE_TRANSAKSI
     
+    # Calculate stock status counts
+    safe_stock_items = 0
+    reorder_items = 0
+    out_of_stock_items = 0
+
+    all_products = Stok.objects.all()
+    for product in all_products:
+        latest_prediction = StockPredictionResult.objects.filter(product=product).order_by('-prediction_date').first()
+
+        if product.stok <= 0:
+            if latest_prediction: # Hanya hitung jika ada prediksi
+                out_of_stock_items += 1
+        else:
+            if latest_prediction and product.stok <= latest_prediction.reorder_point:
+                reorder_items += 1
+            elif latest_prediction and product.stok > latest_prediction.reorder_point:
+                safe_stock_items += 1
+            # Jika tidak ada prediksi, tidak dikategorikan sebagai reorder atau aman berdasarkan prediksi
+
     context = {
         'labels': labels,
         'masuk_data': masuk_data,
@@ -86,7 +103,10 @@ def home_view(request):
         'tipe_transaksi': tipe_transaksi,
         'total_stok': total_stok,
         'transaksi_harian': transaksi_harian,
-        'jumlah_jenis_barang': jumlah_jenis_barang
+        'jumlah_jenis_barang': jumlah_jenis_barang,
+        'safe_stock_items': safe_stock_items,
+        'reorder_items': reorder_items,
+        'out_of_stock_items': out_of_stock_items,
     }
     return render(request, 'page/homepage.html', context)
 

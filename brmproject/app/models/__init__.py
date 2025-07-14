@@ -2,3 +2,4 @@
 from .stok import *
 from .transaksi import *
 from .prediction_model import *
+from .prediction_result import *
