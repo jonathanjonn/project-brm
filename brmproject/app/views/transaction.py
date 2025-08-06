@@ -10,6 +10,7 @@ from django.http import HttpResponseRedirect
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.urls import reverse
+from .check_data import check_data
 
 @login_required
 def transaction_view(request):
@@ -93,3 +94,36 @@ def transaction(request):
         return render(request, 'page/transaction.html', {
                 'error': f'Metode tidak di izinkan'
             })
+def check_data():
+    return {
+        'nama': "Aki",
+        'qty' : "2",
+        'harga' : "75000",
+        'tanggal_transaksi' : "2025-08-07"
+    }
+
+def check_transaction(request):
+    data = check_data()
+
+    stok = Stok.objects.get(nama=data['nama'])
+
+    transaksi_list = Transaksi.objects.filter(
+        stok_id=stok.id,
+        tanggal_transaksi=data['tanggal_transaksi'],
+        tipe = 1
+    )
+
+    if not transaksi_list.exists():
+        return JsonResponse({
+            'error': f"Tidak ada transaksi ditemukan untuk stok '{data['nama']}' pada tanggal {data['tanggal_transaksi']}"
+        }, status=404)
+
+    for t in transaksi_list:
+        if str(t.qty) == data['qty']: 
+            return JsonResponse({
+                'success': 'Data transaksi sudah sesuai dengan kantor pusat'
+            }, status=200)
+
+    return JsonResponse({
+        'error': f"Data transaksi ditemukan, tetapi qty tidak sesuai untuk stok '{data['nama']}'"
+    }, status=400)

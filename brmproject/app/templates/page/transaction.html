@@ -45,6 +45,11 @@
 </form>
 
 <h3 class="mb-3">Riwayat Transaksi</h3>
+{% comment %} <form method="post" action="{% url 'check_transaction' %}">
+	{% csrf_token %}
+	<button type="submit" class="btn btn-primary mb-3">Check Data</button>
+  </form> {% endcomment %}
+  
 
 <div class="table-responsive">
 	<table class="table table-bordered table-hover align-middle">
