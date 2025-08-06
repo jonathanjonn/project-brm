@@ -94,13 +94,6 @@ def transaction(request):
         return render(request, 'page/transaction.html', {
                 'error': f'Metode tidak di izinkan'
             })
-def check_data():
-    return {
-        'nama': "Aki",
-        'qty' : "2",
-        'harga' : "75000",
-        'tanggal_transaksi' : "2025-08-07"
-    }
 
 def check_transaction(request):
     data = check_data()
